@@ -1,0 +1,2 @@
+# unixShell
+building $nush 
