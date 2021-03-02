@@ -1,18 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <assert.h>
 
 #include "linkedl.h"
 #include "basecase.h"
 #include "tokenize.h"
-
-// helper functions
-// linkedl* cons_token(char* token, linkedl* list);
-// linkedl* tokenize(const char* cmd);
-// char* read_str(const char* cmd, long curr_index);
-// int is_shell_op(int curr_char);
 
 void helper_main(char cmd[]);
 
@@ -70,24 +65,16 @@ main(int argc, char** argv)
 
 
 // execute
-void helper_main(char cmd[]) {
+void helper_main(char line[]) {
 
-    /*if(!line) {
-         printf("\n\nline is null!\n\n");
-         exit(0);
-     }
-    */
-     linkedl* tokens_backward = tokenize(cmd);
-     linkedl* tokens = reverse_and_free(tokens_backward);
-     //print_order(tokens);                               
-     
+     assert(line);
+    
+     // print_order(tokenize(cmd);
+     linkedl* tokens = reverse_and_free(tokenize(line)); 
 
-     const char* head = get_head(tokens); // the command to be executed
-     //linkedl* args = tokens->rest;                      // with the commands
-     
      char *args[length(tokens)];
      
-     // copy the strings from tokens to the array of char pointers
+     // linkedl -> arr char pointers
      int i = 0;
      for (; tokens; tokens= tokens->rest) {
         args[i] = malloc(strlen(tokens->head));
@@ -95,11 +82,9 @@ void helper_main(char cmd[]) {
         ++i;
      }
      
-     args[i] = NULL;
-
-     //char *const args[] = {"echo", "one", "two", NULL};
-
-     base_case(head, args);
+     args[i] = NULL; // null terminate
+    
+     base_case(args);
      
      //for (long j = 0; j < length(tokens); ++j) {
      //    free(args[j]);
