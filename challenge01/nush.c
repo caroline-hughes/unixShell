@@ -92,7 +92,7 @@ void helper_main(char cmd[]) {
      
      printf("\nnow lets execute a base case:\n");
      const char* head = get_head(tokens);
-     int x = base_case(head, "hello");
+     base_case(head, "hello");
 
      free_linkedl(tokens);
 }

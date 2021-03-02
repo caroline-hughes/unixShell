@@ -9,8 +9,6 @@
 // execute single command with variable amt of arguments
 int base_case(const char* cmd, const char* arg) {
     printf("in base case, before fork\n");
-    int opid = getpid();
-    int opar = getppid();
     int cpid = fork();
 
     if (cpid > 0) { // parent
