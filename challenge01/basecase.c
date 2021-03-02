@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdio.h>
@@ -7,20 +8,19 @@
 
 // execute single command with variable amt of arguments
 int base_case(const char* cmd, const char* arg) {
+    printf("in base case, before fork\n");
     int opid = getpid();
     int opar = getppid();
-    int child_pid;
+    int cpid = fork();
 
-    printf("IN BASE CASE \n");
-    printf("Before fork\n");
-
-    if ((child_pid = fork())) { // parent
+    if (cpid > 0) { // parent
         printf("In parent\n");
         int status;
-        waitpid(child_pid, &status, 0);
+        waitpid(cpid, &status, 0);
         printf("Done waiting\n");
+        return 0;
     }
-    else { // child
+    else if (cpid == 0) { // child
         printf("In child\n");
         // int execlp(const char *file, const char *arg0, ... /*, (char *)0 */);
 
@@ -28,9 +28,12 @@ int base_case(const char* cmd, const char* arg) {
         printf("\ngoing to run command %s with argument %s\n", cmd, arg);
         //execlp("echo", "echo", "hello", NULL);
         execlp(cmd, cmd, arg, NULL);
-
+        
         //printf("Never get here because already execued.\n");
     }
 
-    return 0;
+    else {
+        perror("error");
+        exit(1);
+    }
 }

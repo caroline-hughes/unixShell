@@ -14,6 +14,8 @@
 // char* read_str(const char* cmd, long curr_index);
 // int is_shell_op(int curr_char);
 
+void helper_main(char cmd[]);
+
 int
 main(int argc, char** argv)
 {
@@ -26,11 +28,11 @@ main(int argc, char** argv)
 
 
     char cmd[256];
-    while (1) {
-        char* line;
+            
+    char* line;
 
-        if (argc == 2) { // SCRIPT
-            //printf("\n\nAT THE START OF SCRIPT\n");
+    if (argc == 2) { // SCRIPT
+            //printf("\n\nAT START OF SCRIPT\n");
 
             printf("the script to read from: %s\n", argv[1]);
             FILE* script = fopen(argv[1], "r");
@@ -39,17 +41,20 @@ main(int argc, char** argv)
                 printf("\n\n\nfopen of script failed!\n\n\n");
                 exit(0);
             }
-
+            
             line = fgets(cmd, 256, script);
-            if (!line) {
-                printf("no lines left\n");
-                fclose(script);
-                exit(0);
-            }
+            while(line) {
+                helper_main(line);
+                line = fgets(cmd, 256, script);
+           }
+            printf("no lines left\n");
+            fclose(script);
         }
 
-        else { // PROMPT
-            printf("/n/nAT THE START OF PROMPT\n");
+    // PROMPT
+    else { 
+        while (1) {
+            printf("\n\nAT START OF PROMPT\n");
             printf("nush$ ");
             fflush(stdout);
 
@@ -62,29 +67,37 @@ main(int argc, char** argv)
             // reads at most size - 1 characters from stream and stores them in str
 
             line = fgets(cmd, 256, stdin);
+            helper_main(line);
         }
-
-
-        // LOGIC TO DO FOR BOTH
-        if(!line) {
-            printf("\n\nline is null!\n\n");
-            exit(0);
-        }
-
-        linkedl* tokens_backward = tokenize(cmd);
-        linkedl* tokens = reverse_and_free(tokens_backward);
-        printf("tokens have been reversed:\n");
-        print_order(tokens);                                    // tokens are aleady all constants
-
-        printf("\nnow lets execute a base case:\n");
-        base_case(get_head(tokens), "hello");
-
-        free_linkedl(tokens);
     }
 
     printf("\nmade it to end of main \n");
     return 0;
 }
+
+
+
+// execute
+void helper_main(char cmd[]) {
+
+    /*if(!line) {
+         printf("\n\nline is null!\n\n");
+         exit(0);
+     }
+    */
+     linkedl* tokens_backward = tokenize(cmd);
+     linkedl* tokens = reverse_and_free(tokens_backward);
+     printf("tokens have been reversed:\n");
+     print_order(tokens);                                    // tokens are aleady all constants
+     
+     printf("\nnow lets execute a base case:\n");
+     const char* head = get_head(tokens);
+     int x = base_case(head, "hello");
+
+     free_linkedl(tokens);
+}
+
+
 
 
 
