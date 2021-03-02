@@ -9,6 +9,8 @@ typedef struct linkedl {
     struct linkedl* rest;
 } linkedl;
 
+const char* get_head(linkedl* list);
+
 linkedl* cons(char* new_head, linkedl* curr_list);
 void free_linkedl(linkedl* l);
 void print_order(linkedl* l);

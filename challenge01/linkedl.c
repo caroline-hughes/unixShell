@@ -4,7 +4,10 @@
 
 #include "linkedl.h"
 
-// based off what I learned in Nat Tuck's linked list implementation lecture video
+const char* get_head(linkedl* list) {
+    //const char* copy_of_head = strdup(list->head); // will need to be freed
+    return list->head;
+}
 
 linkedl*
 cons(char* new_head, linkedl* curr_list){

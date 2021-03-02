@@ -2,120 +2,146 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "linkedl.h"
-//#include "tokenize.h" // NEW
+#include "basecase.h"
+#include "tokenize.h"
 
 // helper functions
-linkedl* cons_token(char* token, linkedl* list);
-linkedl* tokenize(const char* cmd);
-char* read_str(const char* cmd, long curr_index);
-int is_shell_op(int curr_char);
+// linkedl* cons_token(char* token, linkedl* list);
+// linkedl* tokenize(const char* cmd);
+// char* read_str(const char* cmd, long curr_index);
+// int is_shell_op(int curr_char);
 
 int
-main(int _argc, char* _argv[])
+main(int argc, char** argv)
 {
+    if (argc > 2) {
+        // return invalid inputs
+        printf("\n\ninvalid arguments to ./nush\n");
+        printf("usage: pass a script to run or give command line inputs\n");
+        exit(1);
+    }
+
 
     char cmd[256];
+    while (1) {
+        char* line;
 
-    while (1) { // while user hasn't hit enter to indicate end of input
-     printf("nush$ ");
-     fflush(stdout);
+        if (argc == 2) { // SCRIPT
+            //printf("\n\nAT THE START OF SCRIPT\n");
 
-     if (feof(stdin)) { // if user types cmd+D to indicate EOF
-        exit(0);
-     }
+            printf("the script to read from: %s\n", argv[1]);
+            FILE* script = fopen(argv[1], "r");
 
-     char* input = fgets(cmd, 256, stdin);
-     if (!input) {
-         exit(0);
-     }
+            if (!script) {
+                printf("\n\n\nfopen of script failed!\n\n\n");
+                exit(0);
+            }
 
-     linkedl* tokens_backward = tokenize(cmd);
-     printf("tokens right now head -> tail:\n");
-     print_order(tokens_backward);
+            line = fgets(cmd, 256, script);
+            if (!line) {
+                printf("no lines left\n");
+                fclose(script);
+                exit(0);
+            }
+        }
 
-     // call reverse_and_free to get the correct order and free the OG
-     linkedl* tokens = reverse_and_free(tokens_backward);
-     printf("now lets reverse them:\n");
-     print_order(tokens);
+        else { // PROMPT
+            printf("/n/nAT THE START OF PROMPT\n");
+            printf("nush$ ");
+            fflush(stdout);
+
+            if (feof(stdin)) { // if user types cmd+D to indicate EOF
+                printf("\n\n\nuser quit with EOF! \n\n\n");
+                exit(0);
+            }
+
+            // fgets(char * restrict str, int size, FILE * restrict stream);
+            // reads at most size - 1 characters from stream and stores them in str
+
+            line = fgets(cmd, 256, stdin);
+        }
+
+
+        // LOGIC TO DO FOR BOTH
+        if(!line) {
+            printf("\n\nline is null!\n\n");
+            exit(0);
+        }
+
+        linkedl* tokens_backward = tokenize(cmd);
+        linkedl* tokens = reverse_and_free(tokens_backward);
+        printf("tokens have been reversed:\n");
+        print_order(tokens);                                    // tokens are aleady all constants
+
+        printf("\nnow lets execute a base case:\n");
+        base_case(get_head(tokens), "hello");
+
+        free_linkedl(tokens);
+    }
+
+    printf("\nmade it to end of main \n");
+    return 0;
+}
+
+
+
+// BEFORE
+/*
+    else if (argc == 2) { // script was given
+        // read from file... do fgets and tokenize
+        printf("\nthe script to read from: %s\n", argv[1]);
+        FILE* script = fopen(argv[1], "r");
+        printf("\ncheck that fopen worked correctly \n");
+        assert(script); // ensure fopen worked, script is non null
+
+        while (1) { // while there are more lines
+            char* input = fgets(cmd, 256, script);
+            if (!input) {
+                exit(0);
+            }
+
+        }
+
+
+    }
+
+    else { // prompt
+        while (1) { // while user hasn't hit enter to indicate end of input
+        printf("nush$ ");
+        fflush(stdout);
+
+        if (feof(stdin)) { // if user types cmd+D to indicate EOF
+           exit(0);
+        }
+
+        // fgets(char * restrict str, int size, FILE * restrict stream);
+        // reads at most size - 1 characters from stream and stores them in str
+        char* input = fgets(cmd, 256, stdin);
+        if (!input) {
+            exit(0);
+        }
+
+        linkedl* tokens_backward = tokenize(cmd);
+        printf("tokens right now head -> tail:\n");
+        print_order(tokens_backward);
+
+        // call reverse_and_free to get the correct order and free the OG
+        linkedl* tokens = reverse_and_free(tokens_backward);
+        printf("now lets reverse them:\n");
+
+        // tokens are aleady all constants
+        print_order(tokens);
 
 
      printf("now lets execute a base case:\n");
-     //base_case(tokens);
+     base_case(get_head(tokens), "hello");
 
      printf("finally we'll free the tokens:\n");
      free_linkedl(tokens);
     }
     return 0;
 }
-
-/* string cmd (string) -> linked list of tokens
-   in rev order (last token at head)
 */
-linkedl* tokenize(const char* cmd) {
-    linkedl* result = 0;
-    int len = strlen(cmd);
-    long curr_index = 0;
-
-    while (curr_index < len) {
-        if (isspace(cmd[curr_index])) {
-            ++curr_index;
-            continue;
-        }
-
-        // if shell operation
-        if (is_shell_op(cmd[curr_index])) {
-            // check if it's one of the two-char operations
-            if ((cmd[curr_index] == '&' || cmd[curr_index] == '|') &&
-                (curr_index+1<len && (cmd[curr_index+1] == '&' || cmd[curr_index+1] == '|'))) {
-                    char* two_char_op = malloc(3);
-                    memcpy(two_char_op, cmd + curr_index, 2);
-                    two_char_op[2] = 0;
-                    curr_index = curr_index + 2;
-                    result = cons_token(two_char_op, result);
-                    continue;
-            }
-
-            // else single char operation
-            char op[4] = "x";
-            op[0] = cmd[curr_index];
-            result = cons(op, result);
-            ++curr_index;
-            continue;
-        }
-
-        // else command name or command argument
-        char* str = read_str(cmd, curr_index);
-        curr_index += strlen(str);
-        result = cons_token(str,result);
-     }
-     return result;
-}
-
-/* read the string of variable length
-*/
-char* read_str(const char* input, long curr_index) {
-    int len = 0;
-    while(!isspace(input[curr_index+len]) && !is_shell_op(input[curr_index+len])) {
-        ++len;
-    }
-    char* str = malloc(len+1);
-    memcpy(str, input + curr_index, len);
-    str[len] = 0;
-    return str;
-}
-
-/* string token to be added as head of linked list
-*/
-linkedl* cons_token(char* token, linkedl* list) {
-    linkedl* result = cons(token, list);
-    free(token);
-    return result;
-}
-
-/* character -> isOperation boolean
-*/
-int is_shell_op(int ch) {
-    return ch == '<' || ch == '>' || ch == '|' || ch == '&' || ch == ';';
-}
