@@ -27,7 +27,7 @@ linkedl* tokenize(const char* cmd) {
                 (curr_index+1<len && (cmd[curr_index+1] == '&' || cmd[curr_index+1] == '|'))) {
                     char* two_char_op = malloc(3);
                     memcpy(two_char_op, cmd + curr_index, 2);
-                    two_char_op[2] = 0;
+                    two_char_op[2] = '\0';
                     curr_index = curr_index + 2;
                     result = cons_token(two_char_op, result);
                     continue;
@@ -58,7 +58,7 @@ char* read_str(const char* input, long curr_index) {
     }
     char* str = malloc(len+1);
     memcpy(str, input + curr_index, len);
-    str[len] = 0;
+    str[len] = '\0';
     return str;
 }
 
